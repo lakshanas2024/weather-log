@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Weather Log using Queue</title>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      margin: 0;
+      /* default background gradient */
+      background: linear-gradient(135deg, #89f7fe, #66a6ff);
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      padding: 20px;
+      transition: background 0.8s ease; /* smooth background change */
+    }
+    .container {
+      background: rgba(255,255,255,0.9);
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+      width: 90%;
+      max-width: 700px;
+      animation: fadeIn 1s ease;
+    }
+    h1 {
+      text-align: center;
+      background: linear-gradient(90deg, #ff6a00, #ee0979);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-size: 28px;
+      margin-bottom: 20px;
+    }
+    .section {
+      margin: 15px 0;
+      padding: 15px;
+      background: #f7f7f7;
+      border-radius: 10px;
+    }
+    input, select, button {
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      margin: 5px;
+      font-size: 14px;
+    }
+    button {
+      cursor: pointer;
+      background: linear-gradient(135deg, #43e97b, #38f9d7);
+      border: none;
+      color: #000;
+      font-weight: bold;
+      transition: 0.2s;
+    }
+    button:hover { transform: scale(1.05); }
+    .log {
+      background: linear-gradient(135deg, #ffecd2, #fcb69f);
+      margin: 10px 0;
+      padding: 12px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      animation: slideIn 0.5s ease;
+      font-weight: 600;
+    }
+    .max-size-info {
+      font-size: 14px;
+      margin-bottom: 10px;
+      color: #444;
+      font-style: italic;
+      text-align: center;
+    }
+    @keyframes fadeIn { from {opacity: 0;} to {opacity: 1;} }
+    @keyframes slideIn { from {transform: translateX(-20px); opacity: 0;} to {transform: translateX(0); opacity: 1;} }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🌤 Weather Log (Queue)</h1>
+
+    <!-- Add weather entry -->
+    <div class="section">
+      <h2>Add Weather Entry</h2>
+      <form id="weatherForm">
+        <input type="text" id="city" placeholder="City Name" required />
+        <input type="number" id="temp" placeholder="Temperature (°C)" required />
+        <select id="condition">
+          <option value="Sunny">☀ Sunny</option>
+          <option value="Cloudy">☁ Cloudy</option>
+          <option value="Rainy">🌧 Rainy</option>
+          <option value="Stormy">⛈ Stormy</option>
+          <option value="Snowy">❄ Snowy</option>
+        </select>
+        <button type="submit">Add</button>
+      </form>
+    </div>
+
+    <!-- Logs -->
+    <div class="section">
+      <h2>Weather Logs</h2>
+      <div class="max-size-info" id="maxSizeInfo"></div>
+      <div id="queueList"></div>
+      <button id="dequeueBtn">Remove Oldest Log</button>
+    </div>
+  </div>
+
+<script>
+  const MAX_SIZE = 10;
+  let weatherQueue = [];
+
+  const queueList = document.getElementById("queueList");
+  const maxSizeInfo = document.getElementById("maxSizeInfo");
+
+  function updateMaxSizeInfo() {
+    maxSizeInfo.textContent = `Maximum queue size: ${MAX_SIZE}. Current size: ${weatherQueue.length}`;
+  }
+
+  function updateBackground(condition) {
+    // Map condition to gradient backgrounds
+    const backgrounds = {
+      Sunny: "linear-gradient(135deg, #FFEFBA, #FFFFFF)",         // yellowish
+      Cloudy: "linear-gradient(135deg, #89F7FE, #66A6FF)",        // blue
+      Snowy: "linear-gradient(135deg, #C9D6FF, #E2E2E2)",         // purple-ish
+      Rainy: "linear-gradient(135deg, #FFC3A0, #FFAFBD)",         // pink
+      Stormy: "linear-gradient(135deg, #434343, #000000)"         // dark grey (optional)
+    };
+    // Default gradient if none found
+    const bg = backgrounds[condition] || "linear-gradient(135deg, #89f7fe, #66a6ff)";
+    document.body.style.background = bg;
+  }
+
+  function renderQueue() {
+    if (weatherQueue.length === 0) {
+      queueList.innerHTML = "<p>No weather logs yet.</p>";
+      // reset to default background when empty
+      updateBackground(null);
+    } else {
+      queueList.innerHTML = weatherQueue.map((log, i) =>
+        `<div class="log">
+          ${i}. 📍 <b>${log.city}</b> | 🌡 ${log.temp}°C | ${log.condition}
+        </div>`).join("");
+      // Update background based on last added weather condition
+      updateBackground(weatherQueue[weatherQueue.length - 1].condition);
+    }
+    updateMaxSizeInfo();
+  }
+
+  document.getElementById("weatherForm").addEventListener("submit", e => {
+    e.preventDefault();
+    if (weatherQueue.length >= MAX_SIZE) {
+      alert(`Queue is full! Maximum size of ${MAX_SIZE} reached.`);
+      return;
+    }
+    const city = document.getElementById("city").value.trim();
+    const temp = document.getElementById("temp").value;
+    const condition = document.getElementById("condition").value;
+
+    weatherQueue.push({ city, temp, condition }); // enqueue
+    renderQueue();
+    e.target.reset();
+  });
+
+  document.getElementById("dequeueBtn").addEventListener("click", () => {
+    if (weatherQueue.length === 0) {
+      alert("No logs to remove!");
+      return;
+    }
+    weatherQueue.shift(); // dequeue
+    renderQueue();
+  });
+
+  renderQueue();
+</script>
+</body>
+</html>
